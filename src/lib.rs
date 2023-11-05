@@ -1,11 +1,5 @@
 pub mod terminal_input;
 
-use num::complex::Complex64;
-use rayon::iter::{
-    ParallelIterator,
-    IntoParallelIterator
-};
-
 /// r, g, b color
 #[derive(Clone, Copy)]
 pub struct Color(u8, u8, u8);
@@ -46,10 +40,18 @@ pub fn pixels_to_colorimage(pixels: &[Pixel], width: usize, height: usize) -> ep
     output
 }
 
-pub fn complex_to_grayscale(c: Complex64, iteration_max: usize) -> Color {
+/// # Parameters
+/// - `c`: A complex number to be colored depending on its `escape_time`
+/// - `iteration_max`: The max number of iterations for `escape_time`
+/// 
+/// # Returns
+/// - `Color`: raw rgb values.<br>
+///  Black if not in mandlebrot set or if c escaped imediatly.
+///  Otherwise `escape_iter_count` is used for r, g, and b
+pub fn complex_to_grayscale(c: num::Complex<f64>, iteration_max: usize) -> Color {
     match escape_time(c, iteration_max) {
-        Some(itteration_count) => {
-            Color(itteration_count as u8, itteration_count as u8, itteration_count as u8)
+        Some(escape_iter_count) => {
+            Color(escape_iter_count as u8, escape_iter_count as u8, escape_iter_count as u8)
         },
         None => {
             Color(0, 0, 0)
@@ -77,9 +79,9 @@ pub fn pixel_to_complex(
     image_height: usize,
 
     // rectangular area on complex plane
-    top_left: Complex64,
-    bottom_right: Complex64,
-) -> Complex64
+    top_left: num::Complex<f64>,
+    bottom_right: num::Complex<f64>,
+) -> num::Complex<f64>
 {
     // determine complex bounds
     let left_bound = top_left.re;
@@ -95,7 +97,7 @@ pub fn pixel_to_complex(
     let real = left_bound + rect_width;
     let imaginary = top_bound + rect_height;
     
-    Complex64::new(real, imaginary)
+    num::Complex::new(real, imaginary)
 }
 
 /// Calculate `zᵢₜₑᵣₐₜᵢₒₙₛ_ₘₐₓ` using: `zₙ₊₁ = zₙ² + c`.
@@ -111,8 +113,8 @@ pub fn pixel_to_complex(
 /// # Returns
 /// - `Some(n)`: When `zₙ` escapes within the specified maximum iterations.
 /// - `None`: If `zₙ` does not escape within the given maximum iterations and is considered part of the Mandelbrot set.
-pub fn escape_time(c: Complex64, iteration_max: usize) -> Option<usize> {
-    let mut z = Complex64::new(0.0, 0.0);
+pub fn escape_time(c: num::Complex<f64>, iteration_max: usize) -> Option<usize> {
+    let mut z = num::Complex::new(0.0, 0.0);
     for n in 0..iteration_max {
         z = (z * z) + c;
         if z.norm_sqr() > 4.0 {
@@ -127,11 +129,15 @@ pub fn calculate_pixel_data(
     image_width: usize,
     image_height: usize,
     scale_factor: f64,
-    origin: Complex64,
+    origin: num::Complex<f64>,
     iteration_max: usize,
 ) -> Vec<Pixel> {
-    let top_left = origin + Complex64::new(-2.0, 1.2).scale(scale_factor);
-    let bottom_right = origin + Complex64::new(0.5, -1.2).scale(scale_factor);
+    use rayon::iter::{
+        ParallelIterator,
+        IntoParallelIterator
+    };
+    let top_left = origin + num::Complex::new(-2.0, 1.2).scale(scale_factor);
+    let bottom_right = origin + num::Complex::new(0.5, -1.2).scale(scale_factor);
     // iterate over every pixel position
     (0..image_height).into_par_iter().flat_map(|pixel_y| {
         (0..image_width).into_par_iter().map(move |pixel_x| {
@@ -160,7 +166,7 @@ mod tests {
     const IMAGE_WIDTH: usize = 1920;
     const IMAGE_HEIGHT: usize = 1080;
     const SCALE_FACTOR: f64 = 1.0;
-    const ORIGIN: Complex64 = Complex64::new(0.0, 0.0);
+    const ORIGIN: num::Complex::<f64> = num::Complex::new(0.0, 0.0);
     const ITERATION_MAX: usize = 10000;
 
     #[test]
@@ -199,11 +205,11 @@ mod tests {
     pub fn terminal() -> Result<(), Box<dyn std::error::Error>> {
         let grand_start = Instant::now();
         
-        let image_width: usize = get_num("Enter image width: ")?;
-        let image_height: usize = get_num("Enter image height: ")?;
-        let scale_factor: f64 = get_num("Enter scale factor: ")?;
-        let origin: Complex64 = get_complex("Enter a complex number to be the origin of the image.\n")?;
-        let iteration_max: usize = get_num("Enter max number of iterations: ")?;
+        let image_width = get_num("Enter image width: ")?;
+        let image_height = get_num("Enter image height: ")?;
+        let scale_factor = get_num("Enter scale factor: ")?;
+        let origin = get_complex("Enter a complex number to be the origin of the image.\n")?;
+        let iteration_max = get_num("Enter max number of iterations: ")?;
             
         let start = Instant::now();
         
