@@ -14,10 +14,10 @@ use num::{
 
 /// Prompts the user to enter a complex number.
 ///
-/// <br><b>Parameters</b>
+/// # Parameters
 /// - prompt: A string slice that will be printed before each part of the complex number is read.
 /// 
-/// <br><b>Returns</b>
+/// # Returns
 /// - Ok(user_complex_input) upon success
 /// - Err(io_error) upon failure
 pub fn get_complex(prompt: &str) -> Result<Complex64, std::io::Error> {
