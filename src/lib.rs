@@ -1,7 +1,7 @@
 pub mod terminal_input;
 pub mod test;
 
-/// r, g, b color
+/// 8 bit r, g, b
 #[derive(Clone, Copy)]
 pub struct Color(u8, u8, u8);
 impl Into<epaint::Color32> for Color {
@@ -125,7 +125,15 @@ pub fn escape_time(c: num::Complex<f64>, iteration_max: usize) -> Option<usize> 
     None // In mandlebrot set
 }
 
-/// Caluculate color for each pixel using parallel iterators
+/// Caluculate color based on the `escape_time` of the each pixel using parallel iterators
+/// 
+/// # Parameters
+/// - `image_width`, `image_height`: image resolution  
+/// - `origin`: the origin of the viewing rectangular area on the complex plane
+/// - `iteration_max`: The amount of iterations to cuttoff and consider a point part of the Mandlebrot set
+/// 
+/// # Returns
+/// - `Vec<Pixel>`: An
 pub fn calculate_pixel_data(
     image_width: usize,
     image_height: usize,
