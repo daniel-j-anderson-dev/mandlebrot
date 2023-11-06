@@ -10,5 +10,5 @@ Can create:
 # Quickstart Usage
 use <b>`cargo test terminal`</b> to specify the image resolution, complex plane origin, viewport scale, and iteration cut off
 
-# Example
-<img src="mandlebrot.png">
+# High Resolution Example
+<img src="mandlebrot_10000x10000_500_iter.png">
