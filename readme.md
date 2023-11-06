@@ -8,6 +8,7 @@ Can create:
 - <a src="https://docs.rs/epaint/latest/epaint/image/struct.ColorImage.html">`epaint::image::ColorImage`</a>
 
 # Quickstart Usage
+after cloning source
 use <b>`cargo test terminal`</b> to specify the image resolution, complex plane origin, viewport scale, and iteration cut off
 
 # High Resolution Example
