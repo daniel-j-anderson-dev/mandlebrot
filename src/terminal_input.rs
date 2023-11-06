@@ -8,7 +8,7 @@ use std::{
     str::FromStr,
 };
 use num::{
-    complex::Complex64,
+    complex::Complex,
     Num,
 };
 
@@ -18,17 +18,17 @@ use num::{
 /// - prompt: A string slice that will be printed before each part of the complex number is read.
 /// 
 /// # Returns
-/// - Ok(user_complex_input) upon success
-/// - Err(io_error) upon failure
-pub fn get_complex(prompt: &str) -> Result<Complex64, std::io::Error> {
+/// - `Ok(user_complex_input)` upon success
+/// - `Err(io_error)` upon failure
+pub fn get_complex(prompt: &str) -> Result<Complex<f64>, std::io::Error> {
     let mut stdout = stdout().lock();
     stdout.write(prompt.as_bytes())?;
     stdout.flush()?;
     
-    let real: f64 = get_num("Enter the real part: ")?;
-    let imaginary: f64 = get_num("Enter the imaginary part: ")?;
+    let real = get_num("Enter the real part: ")?;
+    let imaginary = get_num("Enter the imaginary part: ")?;
 
-    let input = Complex64::new(real, imaginary);
+    let input = Complex::new(real, imaginary);
     return  Ok(input);
 }
 
@@ -62,23 +62,20 @@ where
     }
 }
 
+/// Reads a line of input from stdin
 fn get_line(prompt: &str) -> Result<String, std::io::Error> {
     // create handles to standard input/output streams.
-    let mut stdout = stdout().lock(); // locking stdout/stdin is faster!
+    let mut stdout = stdout().lock();
     let mut stdin = stdin().lock();
-    let mut input = String::new(); // create a new String to store the user's line of input
-
+    
     // prompt the user to interact through standard output stream
-    stdout.write(prompt.as_bytes())?; // copy the refrenced prompt to the standard output buffer
-    stdout.flush()?; // print the contents of the standard output buffer
-
+    stdout.write(prompt.as_bytes())?;
+    stdout.flush()?;
+    
     // read the user's line of input from the standard input stream.
-    stdin.read_line(&mut input)?; // first line in the standard input buffer is moved into the refrenced String.
+    let mut input = String::new();
+    stdin.read_line(&mut input)?;
 
-    // input is assigned to a new String with a copy of a slice of the original that omitts the whitespace
-    input = input
-        .trim() // returns a slice of the String that doesn't include the leading or trailing whitespace
-        .to_owned(); // creates a new String that owns a copy of the slice returned from .trim()
-
-    return Ok(input);
+    // a slice of input that omitts the whitespace is cloned and the clone is returned
+    Ok(input.trim().to_owned())
 }
