@@ -1,6 +1,7 @@
 # Summary
-A simple library for getting raw pixel data for a given portion or the complex plane.
+A simple library that can generate raw pixel data of a portion of the Mandlebrot set.
 
+This library also supplys simple command line tools that can be helpfull for getting started quickly.
 Right now only grayscale is supported, but supprot for color profiles is planned.
 
 Can create: 
@@ -12,4 +13,5 @@ after cloning source
 use <b>`cargo test terminal`</b> to specify the image resolution, complex plane origin, viewport scale, and iteration cut off
 
 # High Resolution Example
+Image saved with <a src="https://docs.rs/image/0.24.7/image/">image</a> crate
 <img src="mandlebrot_10000x10000_500_iter.png">
