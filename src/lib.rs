@@ -172,7 +172,8 @@ pub fn calculate_pixel_data(
                     color
                 },
             }
-    })}).collect();
+        })
+    }).collect();
     pixels
 }
 
