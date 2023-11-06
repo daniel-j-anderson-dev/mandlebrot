@@ -147,22 +147,27 @@ pub fn calculate_pixel_data(
     };
     let top_left = origin + num::Complex::new(-2.0, 1.2).scale(scale_factor);
     let bottom_right = origin + num::Complex::new(0.5, -1.2).scale(scale_factor);
+    
+    // preallocate space for pixels!
+    let mut pixels = Vec::<Pixel>::with_capacity(image_width * image_height);
+    
     // iterate over every pixel position
-    (0..image_height).into_par_iter().flat_map(|pixel_y| {
+    pixels = (0..image_height).into_par_iter().flat_map(|pixel_y| {
         (0..image_width).into_par_iter().map(move |pixel_x| {
-            // turn pixel position into a specific complex number
-            let c = pixel_to_complex(
-                pixel_x, pixel_y,
-                image_width, image_height,
-                top_left, bottom_right
-            );
-            
-            // calculate color of the specific complex number
-            let color = complex_to_grayscale(c, iteration_max);
-            
-            // map each pixel position pair to a specific `Pixel`
-            Pixel { x: pixel_x, y: pixel_y, color }
-        }
-    )}).collect()
+      
+                // turn pixel position into a specific complex number
+                let c = pixel_to_complex(
+                    pixel_x, pixel_y,
+                    image_width, image_height,
+                    top_left, bottom_right
+                );
+                
+                // calculate color of the specific complex number
+                let color = complex_to_grayscale(c, iteration_max);
+                
+                // map each pixel position pair to a specific `Pixel`
+                Pixel { x: pixel_x, y: pixel_y, color }
+    })}).collect();
+    pixels
 }
 
