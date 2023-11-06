@@ -165,9 +165,9 @@ mod tests {
     
     const IMAGE_WIDTH: usize = 1920;
     const IMAGE_HEIGHT: usize = 1080;
-    const SCALE_FACTOR: f64 = 1.0;
+    const SCALE_FACTOR: f64 = 0.5625;
     const ORIGIN: num::Complex::<f64> = num::Complex::new(0.0, 0.0);
-    const ITERATION_MAX: usize = 10000;
+    const ITERATION_MAX: usize = 500;
 
     #[test]
     pub fn default() -> Result<(), Box<dyn std::error::Error>> {
@@ -196,7 +196,7 @@ mod tests {
         println!("Grand total: {:?}", grand_delta);
         println!("Calculating pixel colors: {:?}", pixel_delta);
         println!("Copying raw pixels into image: {:?}", image_delta);
-        println!("Save: {:?}", save_delta);
+        println!("Saving: {:?}", save_delta);
     
         return Ok(());
     }
