@@ -155,23 +155,23 @@ pub fn calculate_pixel_data(
     pixels = 
     (0..image_height).into_par_iter().flat_map(|pixel_y| {
         (0..image_width).into_par_iter().map(move |pixel_x| {               
-                    // map each pixel position pair to a specific `Pixel`
-                    Pixel {
-                        x: pixel_x,
-                        y: pixel_y,
-                        color: {
-                            // turn pixel position into a specific complex number
-                            let c = pixel_to_complex(
-                                pixel_x, pixel_y,
-                                image_width, image_height,
-                                top_left, bottom_right
-                            );
-                            
-                            // calculate color of the specific complex number
-                            let color = complex_to_grayscale(c, iteration_max);
-                            color
-                        },
-                    }
+            // map each pixel position pair to a specific `Pixel`
+            Pixel {
+                x: pixel_x,
+                y: pixel_y,
+                color: {
+                    // turn pixel position into a specific complex number
+                    let c = pixel_to_complex(
+                        pixel_x, pixel_y,
+                        image_width, image_height,
+                        top_left, bottom_right
+                    );
+                    
+                    // calculate color of the specific complex number
+                    let color = complex_to_grayscale(c, iteration_max);
+                    color
+                },
+            }
     })}).collect();
     pixels
 }
