@@ -39,7 +39,7 @@ pub struct Pixel {
 
 /// For interfacing with `image` crate
 pub fn colors_to_rgbimage(pixels: &[Color], width: usize, height: usize) -> image::RgbImage {
-    image::ImageBuffer::from_fn(width as u32, height as u32, |x, y| {
+    image::ImageBuffer::from_par_fn(width as u32, height as u32, |x, y| {
         pixels[(y as usize * width) + x as usize].into()
     })
 }
