@@ -1,5 +1,5 @@
 # Summary
-A simple library that can generate raw pixel data of a portion of the Mandlebrot set.
+A simple library that can generate raw pixel data of a portion of the mandelbrot set.
 
 This library also supplys simple command line tools that can be helpfull for getting started quickly.
 Right now only grayscale is supported, but supprot for color profiles is planned.
@@ -14,4 +14,4 @@ use <b>`cargo test terminal`</b> to specify the image resolution, complex plane 
 
 # High Resolution Example
 Image saved with <a src="https://docs.rs/image/0.24.7/image/">image</a> crate
-<img src="mandlebrot_10000x10000_500_iter.png">
+<img src="mandelbrot_10000x10000_500_iter.png">
