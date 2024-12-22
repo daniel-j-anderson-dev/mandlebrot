@@ -104,13 +104,10 @@ pub fn escape_time(c: Complex<f64>, iteration_max: usize) -> Option<usize> {
 pub fn calculate_color_data(
     image_width: usize,
     image_height: usize,
-    scale_factor: f64,
-    origin: Complex<f64>,
+    top_left: Complex<f64>,
+    bottom_right: Complex<f64>,
     iteration_max: usize,
 ) -> Vec<Color> {
-    let top_left = origin + Complex::new(-2.0, 1.2).scale(scale_factor);
-    let bottom_right = origin + Complex::new(0.5, -1.2).scale(scale_factor);
-
     // iterate over every pixel position in parallel
     // mapping each pixel position to a specific `Color`
     let pixel_indexes = (0..image_height)

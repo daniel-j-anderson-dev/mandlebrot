@@ -8,16 +8,16 @@ pub fn default() -> Result<(), Box<dyn std::error::Error>> {
 
     const IMAGE_WIDTH: usize = 1000;
     const IMAGE_HEIGHT: usize = 1000;
-    const SCALE_FACTOR: f64 = 1.0;
-    const ORIGIN: Complex<f64> = Complex::new(0.0, 0.0);
+    const TOP_LEFT: Complex<f64> = Complex::new(-2.0, 1.2);
+    const BOTTOM_RIGHT: Complex<f64> = Complex::new(0.5, -1.2);
     const ITERATION_MAX: usize = 500;
 
     let start = Instant::now();
     let color_data = calculate_color_data(
         IMAGE_WIDTH,
         IMAGE_HEIGHT,
-        SCALE_FACTOR,
-        ORIGIN,
+        TOP_LEFT,
+        BOTTOM_RIGHT,
         ITERATION_MAX,
     );
     let color_delta = Instant::now() - start;
@@ -57,14 +57,17 @@ pub fn terminal() -> Result<(), Box<dyn std::error::Error>> {
     let scale_factor = get_parsed_input("Enter scale factor: ")?;
     let origin = get_parsed_input("Enter a complex number to be the origin of the image (eg. 1 + 2i): ")?;
     let iteration_max = get_parsed_input("Enter max number of iterations: ")?;
+
+    let top_left = origin + Complex::new(-2.0, 1.2).scale(scale_factor);
+    let bottom_right = origin + Complex::new(0.5, -1.2).scale(scale_factor);
     
     let grand_start = Instant::now();
     let start = grand_start;
     let color_data = calculate_color_data(
         image_width,
         image_height,
-        scale_factor,
-        origin,
+        top_left,
+        bottom_right,
         iteration_max,
     );
     let color_delta = Instant::now() - start;
