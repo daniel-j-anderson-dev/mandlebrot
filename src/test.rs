@@ -96,3 +96,45 @@ Saving: {:>?}",
 
     Ok(())
 }
+
+/// Prompts the user to enter a number.
+///
+/// # Parameters
+/// - `prompt`: A string slice that will be printed before user input is read.
+///
+/// # Type Parameters
+///  - `T`: A type that can be parsed from a string with a printable error case
+///
+/// # Returns
+/// - `Ok(parsed_input)`: When the user inputs a valid instance of `T`
+/// - `Err(io_error)`: When there is an io error from `get_line`
+pub fn get_parsed_input<T>(prompt: &str) -> Result<T, std::io::Error>
+where
+    T: core::str::FromStr,                // Needs to be parsable
+    T::Err: core::error::Error, // Need to be able to print error if parse fails
+{
+    // keep trying until the user gets enters a valid instance of T
+    loop {
+        match get_input(prompt)?.parse() {
+            Ok(number_input) => return Ok(number_input),
+            Err(parse_error) => eprintln!("\nInvalid input: {}\n", parse_error),
+        }
+    }
+}
+
+/// Reads a line of input from stdin
+fn get_input(prompt: &str) -> Result<String, std::io::Error> {
+    use std::io::Write;
+
+    {
+        let mut stdout = std::io::stdout();
+        stdout.write(prompt.as_bytes())?;
+        stdout.flush()?;
+    }
+
+    let mut input = String::new();
+    std::io::stdin().read_line(&mut input)?;
+    input.truncate(input.trim_end().len());
+
+    Ok(input)
+}
