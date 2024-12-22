@@ -1,6 +1,5 @@
-use num::Num;
 use std::{
-    io::{stdin, stdout, BufRead, Write},
+    io::{stdin, stdout, Write},
     str::FromStr,
 };
 
@@ -10,20 +9,19 @@ use std::{
 /// - `prompt`: A string slice that will be printed before user input is read.
 ///
 /// # Type Parameters
-///  - `T`: A numeric type that can be parsed from a string with a printable error case
+///  - `T`: A type that can be parsed from a string with a printable error case
 ///
 /// # Returns
-/// - `Ok(user_num_input)`: When the user inputs a valid number
+/// - `Ok(parsed_input)`: When the user inputs a valid instance of `T`
 /// - `Err(io_error)`: When there is an io error from `get_line`
-pub fn get_num<T>(prompt: &str) -> Result<T, std::io::Error>
+pub fn get_parsed_input<T>(prompt: &str) -> Result<T, std::io::Error>
 where
-    T: FromStr + Num,          // Needs to be parsable number
+    T: FromStr,                // Needs to be parsable
     T::Err: std::error::Error, // Need to be able to print error if parse fails
 {
-    // keep trying until the user gets enters a valid number
+    // keep trying until the user gets enters a valid instance of T
     loop {
-        let input = get_line(prompt)?;
-        match input.parse() {
+        match get_input(prompt)?.parse() {
             Ok(number_input) => return Ok(number_input),
             Err(parse_error) => eprintln!("\nInvalid input: {}\n", parse_error),
         }
@@ -31,19 +29,16 @@ where
 }
 
 /// Reads a line of input from stdin
-fn get_line(prompt: &str) -> Result<String, std::io::Error> {
-    // create handles to standard input/output streams.
-    let mut stdout = stdout().lock();
-    let mut stdin = stdin().lock();
+fn get_input(prompt: &str) -> Result<String, std::io::Error> {
+    {
+        let mut stdout = stdout();
+        stdout.write(prompt.as_bytes())?;
+        stdout.flush()?;
+    }
 
-    // prompt the user to interact through standard output stream
-    stdout.write(prompt.as_bytes())?;
-    stdout.flush()?;
-
-    // read the user's line of input from the standard input stream.
     let mut input = String::new();
-    stdin.read_line(&mut input)?;
+    stdin().read_line(&mut input)?;
+    input.truncate(input.trim_end().len());
 
-    // a slice of input that omitts the whitespace is cloned and the clone is returned
-    Ok(input.trim().to_owned())
+    Ok(input)
 }
