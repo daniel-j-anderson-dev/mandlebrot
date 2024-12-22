@@ -1,4 +1,4 @@
-use crate::{image_adapter::colors_to_rgbimage, terminal_input::get_parsed_input, *};
+use crate::{image_adapter::colors_to_rgbimage, *};
 use num::Complex;
 use std::time::Instant;
 
