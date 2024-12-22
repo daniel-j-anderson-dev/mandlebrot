@@ -82,7 +82,7 @@ pub fn pixel_to_complex(
 /// - `Some(n)`: When `zₙ` escapes within the specified maximum iterations.
 /// - `None`: If `zₙ` does not escape within the given maximum iterations and is considered part of the Mandelbrot set.
 pub fn escape_time(c: Complex<f64>, iteration_max: usize) -> Option<usize> {
-    let mut z = Complex::new(0.0, 0.0);
+    let mut z = Complex::<f64>::ZERO;
     for n in 0..iteration_max {
         z = (z * z) + c;
         if z.norm_sqr() > 4.0 {
