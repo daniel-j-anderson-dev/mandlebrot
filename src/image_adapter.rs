@@ -1,4 +1,3 @@
-//! mod image_interop
 use super::Color;
 use image::{ImageBuffer, Rgb, RgbImage};
 
