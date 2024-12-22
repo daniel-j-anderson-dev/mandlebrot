@@ -1,10 +1,12 @@
 use num::Complex;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
-pub mod image_adapter;
+#[cfg(feature = "epaint")]
 pub mod epaint_adapter;
 
-pub mod terminal_input;
+#[cfg(feature = "image")]
+pub mod image_adapter;
+
 #[cfg(test)]
 pub mod test;
 
