@@ -55,12 +55,14 @@ pub fn terminal() -> Result<(), Box<dyn std::error::Error>> {
     let image_width = get_parsed_input("Enter image width: ")?;
     let image_height = get_parsed_input("Enter image height: ")?;
     let scale_factor = get_parsed_input("Enter scale factor: ")?;
-    let origin = get_parsed_input("Enter a complex number to be the origin of the image (eg. 1 + 2i): ")?;
+    let origin = get_parsed_input::<Complex<_>>(
+        "Enter a complex number to be the origin of the image (eg. 1 + 2i): ",
+    )?;
     let iteration_max = get_parsed_input("Enter max number of iterations: ")?;
 
     let top_left = origin + Complex::new(-2.0, 1.2).scale(scale_factor);
     let bottom_right = origin + Complex::new(0.5, -1.2).scale(scale_factor);
-    
+
     let grand_start = Instant::now();
     let start = grand_start;
     let color_data = calculate_color_data(
@@ -75,7 +77,7 @@ pub fn terminal() -> Result<(), Box<dyn std::error::Error>> {
     let start = Instant::now();
     let output = colors_to_rgbimage(&color_data, image_width, image_height);
     let image_delta = Instant::now() - start;
-    
+
     let start = Instant::now();
     output.save(format!(
         "mandelbrot_{}x{}_{}_iter.png",
@@ -100,7 +102,7 @@ Saving: {:>?}",
     Ok(())
 }
 
-/// Prompts the user to enter a number.
+/// Prompts the user to enter a `T` value and returns the first valid `T` value input from the terminal.
 ///
 /// # Parameters
 /// - `prompt`: A string slice that will be printed before user input is read.
@@ -113,7 +115,7 @@ Saving: {:>?}",
 /// - `Err(io_error)`: When there is an io error from `get_line`
 pub fn get_parsed_input<T>(prompt: &str) -> Result<T, std::io::Error>
 where
-    T: core::str::FromStr,                // Needs to be parsable
+    T: core::str::FromStr,      // Needs to be parsable
     T::Err: core::error::Error, // Need to be able to print error if parse fails
 {
     // keep trying until the user gets enters a valid instance of T
