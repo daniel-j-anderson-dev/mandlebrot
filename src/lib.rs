@@ -100,7 +100,7 @@ pub fn escape_time(c: Complex<f64>, iteration_max: usize) -> Option<usize> {
 /// - `iteration_max`: The amount of iterations to cutoff and consider a point part of the mandelbrot set
 ///
 /// # Returns
-/// - `Vec<Color>`: An
+/// - `Vec<Color>`: The color data of each pixel serialized by rows
 pub fn calculate_color_data(
     image_width: usize,
     image_height: usize,
