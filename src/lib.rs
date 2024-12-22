@@ -80,28 +80,28 @@ pub fn escape_time_to_grayscale(escape_time: Option<usize>) -> Color {
 /// # Returns
 /// - [Complex]: A unique complex number calculated from params
 pub fn pixel_to_complex(
-    x: usize,
-    y: usize,
+    pixel_x: usize,
+    pixel_y: usize,
     image_width: usize,
     image_height: usize,
     top_left: Complex<f64>,
     bottom_right: Complex<f64>,
 ) -> Complex<f64> {
-    // determine complex bounds
-    let left_bound = top_left.re;
-    let top_bound = top_left.im;
-    let bottom_bound = bottom_right.im;
-    let right_bound = bottom_right.re;
+    // calculate the region of the complex plane to map the pixel onto
+    let complex_plane_width = bottom_right.re - top_left.re;
+    let complex_plane_height = bottom_right.im - top_left.im;
 
-    // scale each point (x, y)*(x/width, y/height)
-    let rect_width = (right_bound - left_bound) * x as f64 / image_width as f64;
-    let rect_height = (bottom_bound - top_bound) * y as f64 / image_height as f64;
+    // determine the pixels position as a percentage of the image resolution
+    let horizontal_ratio = pixel_x as f64 / image_width as f64;
+    let vertical_ratio = pixel_y as f64 / image_height as f64;
 
-    // scale complex bounds by their respective percentages then add to the initial bounds
-    let real = left_bound + rect_width;
-    let imaginary = top_bound + rect_height;
+    // scale the complex region dimensions by the percentage to get the relative complex position
+    let offset = Complex::new(
+        complex_plane_width * horizontal_ratio,
+        complex_plane_height * vertical_ratio,
+    );
 
-    Complex::new(real, imaginary)
+    top_left + offset
 }
 
 /// Calculate `zᵢₜₑᵣₐₜᵢₒₙₛ_ₘₐₓ` using: `zₙ₊₁ = zₙ² + c`.
