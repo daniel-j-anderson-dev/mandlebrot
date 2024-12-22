@@ -1,54 +1,16 @@
 use num::Complex;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
+pub mod image_adapter;
+pub mod epaint_adapter;
+
 pub mod terminal_input;
 #[cfg(test)]
 pub mod test;
 
 /// 8 bit r, g, b
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Color(u8, u8, u8);
-impl From<Color> for epaint::Color32 {
-    fn from(value: Color) -> Self {
-        epaint::Color32::from_rgb(value.0, value.1, value.2)
-    }
-}
-impl From<&Color> for epaint::Color32 {
-    fn from(value: &Color) -> Self {
-        epaint::Color32::from_rgb(value.0, value.1, value.2)
-    }
-}
-impl From<Color> for image::Rgb<u8> {
-    fn from(value: Color) -> Self {
-        image::Rgb([value.0, value.1, value.2])
-    }
-}
-impl From<&Color> for image::Rgb<u8> {
-    fn from(value: &Color) -> Self {
-        image::Rgb([value.0, value.1, value.2])
-    }
-}
-
-/// For interfacing with `image` crate
-pub fn colors_to_rgbimage(color_data: &[Color], width: usize, height: usize) -> image::RgbImage {
-    image::ImageBuffer::from_par_fn(width as u32, height as u32, |x, y| {
-        color_data[(y as usize * width) + x as usize].into()
-    })
-}
-
-/// For interfacing with `epaint` crate
-pub fn colors_to_colorimage(
-    color_data: &[Color],
-    width: usize,
-    height: usize,
-) -> epaint::ColorImage {
-    let mut output = epaint::ColorImage::new([width, height], epaint::Color32::from_rgb(0, 0, 0));
-    output.pixels = color_data
-        .into_par_iter()
-        .map(epaint::Color32::from)
-        .collect();
-    output
-}
 
 /// # Parameters
 /// - `c`: A complex number to be colored depending on its `escape_time`
@@ -133,11 +95,11 @@ pub fn escape_time(c: Complex<f64>, iteration_max: usize) -> Option<usize> {
 /// # Parameters
 /// - `image_width`, `image_height`: image resolution  
 /// - `origin`: the origin of the viewing rectangular area on the complex plane
-/// - `iteration_max`: The amount of iterations to cuttoff and consider a point part of the mandelbrot set
+/// - `iteration_max`: The amount of iterations to cutoff and consider a point part of the mandelbrot set
 ///
 /// # Returns
 /// - `Vec<Color>`: An
-pub fn calculate_pixel_data(
+pub fn calculate_color_data(
     image_width: usize,
     image_height: usize,
     scale_factor: f64,
