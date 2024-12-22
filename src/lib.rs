@@ -29,25 +29,24 @@ impl From<&Color> for image::Rgb<u8> {
     }
 }
 
-/// position and color
-#[derive(Clone, Copy)]
-pub struct Pixel {
-    pub x: usize,
-    pub y: usize,
-    pub color: Color,
-}
-
 /// For interfacing with `image` crate
-pub fn colors_to_rgbimage(pixels: &[Color], width: usize, height: usize) -> image::RgbImage {
+pub fn colors_to_rgbimage(color_data: &[Color], width: usize, height: usize) -> image::RgbImage {
     image::ImageBuffer::from_par_fn(width as u32, height as u32, |x, y| {
-        pixels[(y as usize * width) + x as usize].into()
+        color_data[(y as usize * width) + x as usize].into()
     })
 }
 
 /// For interfacing with `epaint` crate
-pub fn colors_to_colorimage(pixels: &[Color], width: usize, height: usize) -> epaint::ColorImage {
+pub fn colors_to_colorimage(
+    color_data: &[Color],
+    width: usize,
+    height: usize,
+) -> epaint::ColorImage {
     let mut output = epaint::ColorImage::new([width, height], epaint::Color32::from_rgb(0, 0, 0));
-    output.pixels = pixels.into_par_iter().map(epaint::Color32::from).collect();
+    output.pixels = color_data
+        .into_par_iter()
+        .map(epaint::Color32::from)
+        .collect();
     output
 }
 
@@ -73,23 +72,18 @@ pub fn escape_time_to_grayscale(escape_time: Option<usize>) -> Color {
 /// map any pixel position to a corresponding complex number given the image resolution and a rectangular area on the complex plane
 ///
 /// # Parameters
-/// - `x`, `y`: pixel position
+/// - `pixel_x`, `pixel_y`: pixel position. (top left pixel is `(0, 0)`)
 /// - `image_width`, `image_height`: image resolution  
 /// - `top_left`: top left complex point of a rectangle
 /// - `bottom_right`: bottom right complex point of a rectangle
 ///
 /// # Returns
-/// - <a src="https://docs.rs/num/latest/num/struct.Complex.html">`Complex<f64>`</a>: A unique complex number calculated from params
+/// - [Complex]: A unique complex number calculated from params
 pub fn pixel_to_complex(
-    // pixel coords
     x: usize,
     y: usize,
-
-    // image resolution
     image_width: usize,
     image_height: usize,
-
-    // rectangular area on complex plane
     top_left: Complex<f64>,
     bottom_right: Complex<f64>,
 ) -> Complex<f64> {
@@ -112,9 +106,9 @@ pub fn pixel_to_complex(
 
 /// Calculate `zᵢₜₑᵣₐₜᵢₒₙₛ_ₘₐₓ` using: `zₙ₊₁ = zₙ² + c`.
 ///
-/// z₀ = 0+0i
+/// `z₀ = 0+0i`
 ///
-/// Escape condition: ||zₙ² + c|| > 2
+/// Escape condition: `||zₙ² + c|| > 2`
 ///
 /// # Params
 /// - `c`: A complex number to be checked for membership in the Mandelbrot set.
@@ -142,7 +136,7 @@ pub fn escape_time(c: Complex<f64>, iteration_max: usize) -> Option<usize> {
 /// - `iteration_max`: The amount of iterations to cuttoff and consider a point part of the mandelbrot set
 ///
 /// # Returns
-/// - `Vec<Pixel>`: An
+/// - `Vec<Color>`: An
 pub fn calculate_pixel_data(
     image_width: usize,
     image_height: usize,
@@ -157,7 +151,7 @@ pub fn calculate_pixel_data(
     // mapping each pixel position to a specific `Color`
     let pixel_indexes = (0..image_height)
         .into_par_iter()
-        .flat_map(|y| rayon::iter::repeat(y).zip(0..image_width));
+        .flat_map(|y| (0..image_width).into_par_iter().map(move |x| (y, x)));
 
     pixel_indexes
         .map(|(y, x)| {
