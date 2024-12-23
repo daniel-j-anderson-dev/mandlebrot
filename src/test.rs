@@ -55,7 +55,7 @@ pub fn terminal() -> Result<(), Box<dyn std::error::Error>> {
     let image_width = get_parsed_input("Enter image width: ")?;
     let image_height = get_parsed_input("Enter image height: ")?;
     let scale_factor = get_parsed_input("Enter scale factor: ")?;
-    let origin = get_parsed_input::<Complex<_>>(
+    let origin = get_parsed_input::<Complex<f64>>(
         "Enter a complex number to be the origin of the image (eg. 1 + 2i): ",
     )?;
     let iteration_max = get_parsed_input("Enter max number of iterations: ")?;
