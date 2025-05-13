@@ -3,12 +3,12 @@ use image::{ImageBuffer, Rgb, RgbImage};
 
 impl From<Color> for Rgb<u8> {
     fn from(value: Color) -> Self {
-        Rgb([value.0, value.1, value.2])
+        Rgb([value.red(), value.green(), value.blue()])
     }
 }
 impl From<&Color> for Rgb<u8> {
     fn from(value: &Color) -> Self {
-        Rgb([value.0, value.1, value.2])
+        Rgb([value.red(), value.green(), value.blue()])
     }
 }
 
