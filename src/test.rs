@@ -3,17 +3,16 @@ use num::Complex;
 use std::time::Instant;
 
 #[test]
-pub fn default() -> Result<(), Box<dyn std::error::Error>> {
-    let grand_start = Instant::now();
-
+pub fn default() {
     const IMAGE_WIDTH: usize = 1000;
     const IMAGE_HEIGHT: usize = 1000;
-    const TOP_LEFT: Complex<f64> = Complex::new(-2.0, 1.2);
-    const BOTTOM_RIGHT: Complex<f64> = Complex::new(0.5, -1.2);
+    const TOP_LEFT: Complex<f32> = Complex::new(-2.0, 1.2);
+    const BOTTOM_RIGHT: Complex<f32> = Complex::new(0.5, -1.2);
     const ITERATION_MAX: usize = 500;
 
+    let grand_start = Instant::now();
     let start = Instant::now();
-    let color_data = calculate_color_data(
+    let color_data = calculate_mandelbrot_color_data(
         IMAGE_WIDTH,
         IMAGE_HEIGHT,
         TOP_LEFT,
@@ -27,45 +26,44 @@ pub fn default() -> Result<(), Box<dyn std::error::Error>> {
     let image_delta = Instant::now() - start;
 
     let start = Instant::now();
-    output.save(format!(
-        "mandelbrot_{}x{}_{}_iter.png",
-        IMAGE_WIDTH, IMAGE_HEIGHT, ITERATION_MAX
-    ))?;
+    output
+        .save(format!(
+            "mandelbrot_{}x{}_{}_iter.png",
+            IMAGE_WIDTH, IMAGE_HEIGHT, ITERATION_MAX
+        ))
+        .unwrap();
     let end = Instant::now();
-
     let save_delta = end - start;
     let grand_delta = end - grand_start;
 
     println!(
         r"
-Resolution: {}x{}
-Number of iterations: {}
-Grand total: {:?}
-Calculating pixel colors: {:?}
-Copying raw pixels into image: {:?}
-Saving: {:>?}",
-        IMAGE_WIDTH, IMAGE_HEIGHT, ITERATION_MAX, grand_delta, color_delta, image_delta, save_delta,
+Resolution: {IMAGE_WIDTH}x{IMAGE_HEIGHT}
+Number of iterations: {ITERATION_MAX}
+Grand total: {grand_delta:?}
+Calculating pixel colors: {color_delta:?}
+Copying raw pixels into image: {image_delta:?}
+Saving: {save_delta:>?}"
     );
-
-    Ok(())
 }
 
 #[test]
-pub fn terminal() -> Result<(), Box<dyn std::error::Error>> {
-    let image_width = get_parsed_input("Enter image width: ")?;
-    let image_height = get_parsed_input("Enter image height: ")?;
-    let scale_factor = get_parsed_input("Enter scale factor: ")?;
-    let origin = get_parsed_input::<Complex<f64>>(
+pub fn terminal() {
+    let image_width = get_parsed_input("Enter image width: ").unwrap();
+    let image_height = get_parsed_input("Enter image height: ").unwrap();
+    let scale_factor = get_parsed_input("Enter scale factor: ").unwrap();
+    let origin = get_parsed_input::<Complex<f32>>(
         "Enter a complex number to be the origin of the image (eg. 1 + 2i): ",
-    )?;
-    let iteration_max = get_parsed_input("Enter max number of iterations: ")?;
+    )
+    .unwrap();
+    let iteration_max = get_parsed_input("Enter max number of iterations: ").unwrap();
 
     let top_left = origin + Complex::new(-2.0, 1.2).scale(scale_factor);
     let bottom_right = origin + Complex::new(0.5, -1.2).scale(scale_factor);
 
     let grand_start = Instant::now();
     let start = grand_start;
-    let color_data = calculate_color_data(
+    let color_data = calculate_mandelbrot_color_data(
         image_width,
         image_height,
         top_left,
@@ -79,27 +77,24 @@ pub fn terminal() -> Result<(), Box<dyn std::error::Error>> {
     let image_delta = Instant::now() - start;
 
     let start = Instant::now();
-    output.save(format!(
-        "mandelbrot_{}x{}_{}_iter.png",
-        image_width, image_height, iteration_max
-    ))?;
+    output
+        .save(format!(
+            "mandelbrot_{image_width}x{image_height}_{iteration_max}_iter.png"
+        ))
+        .unwrap();
     let end = Instant::now();
     let save_delta = end - start;
-
     let grand_delta = end - grand_start;
 
     println!(
         r"
-Resolution: {}x{}
-Number of iterations: {}
-Grand total: {:?}
-Calculating pixel colors: {:?}
-Copying raw pixels into image: {:?}
-Saving: {:>?}",
-        image_width, image_height, iteration_max, grand_delta, color_delta, image_delta, save_delta,
+Resolution: {image_width}x{image_height}
+Number of iterations: {iteration_max}
+Grand total: {grand_delta:?}
+Calculating pixel colors: {color_delta:?}
+Copying raw pixels into image: {image_delta:?}
+Saving: {save_delta:>?}"
     );
-
-    Ok(())
 }
 
 /// Prompts the user to enter a `T` value and returns the first valid `T` value input from the terminal.
@@ -122,7 +117,7 @@ where
     loop {
         match get_input(prompt)?.parse() {
             Ok(number_input) => return Ok(number_input),
-            Err(parse_error) => eprintln!("\nInvalid input: {}\n", parse_error),
+            Err(parse_error) => eprintln!("\nInvalid input: {parse_error}\n"),
         }
     }
 }
