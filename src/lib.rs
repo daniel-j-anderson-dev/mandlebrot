@@ -12,7 +12,30 @@ pub mod test;
 
 /// 8 bit r, g, b
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Color(u8, u8, u8);
+pub struct Color([u8; 4]);
+impl Color {
+    pub const fn as_array(&self) -> [u8; 4] {
+        self.0
+    }
+    pub const fn as_slice(&self) -> &[u8; 4] {
+        &self.0
+    }
+    pub const fn as_slice_mut(&mut self) -> &mut [u8; 4] {
+        &mut self.0
+    }
+    pub const fn red(&self) -> u8 {
+        self.0[0]
+    }
+    pub const fn green(&self) -> u8 {
+        self.0[1]
+    }
+    pub const fn blue(&self) -> u8 {
+        self.0[2]
+    }
+    pub const fn alpha(&self) -> u8 {
+        self.0[3]
+    }
+}
 
 /// # Parameters
 /// - `c`: A complex number to be colored depending on its `escape_time`
@@ -24,12 +47,13 @@ pub struct Color(u8, u8, u8);
 ///  Otherwise `escape_iter_count` is used for r, g, and b
 pub fn escape_time_to_grayscale(escape_time: Option<usize>) -> Color {
     match escape_time {
-        Some(escape_iter_count) => Color(
+        Some(escape_iter_count) => Color([
             escape_iter_count as u8,
             escape_iter_count as u8,
             escape_iter_count as u8,
-        ),
-        None => Color(0, 0, 0),
+            255,
+        ]),
+        None => Color([0, 0, 0, 255]),
     }
 }
 
@@ -48,18 +72,15 @@ pub fn pixel_to_complex(
     pixel_y: usize,
     image_width: usize,
     image_height: usize,
-    top_left: Complex<f64>,
-    bottom_right: Complex<f64>,
-) -> Complex<f64> {
-    // calculate the region of the complex plane to map the pixel onto
+    top_left: Complex<f32>,
+    bottom_right: Complex<f32>,
+) -> Complex<f32> {
     let complex_plane_width = bottom_right.re - top_left.re;
     let complex_plane_height = bottom_right.im - top_left.im;
 
-    // determine the pixels position as a percentage of the image resolution
-    let horizontal_ratio = pixel_x as f64 / image_width as f64;
-    let vertical_ratio = pixel_y as f64 / image_height as f64;
+    let horizontal_ratio = pixel_x as f32 / image_width as f32;
+    let vertical_ratio = pixel_y as f32 / image_height as f32;
 
-    // scale the complex region dimensions by the percentage to get the relative complex position
     let offset = Complex::new(
         complex_plane_width * horizontal_ratio,
         complex_plane_height * vertical_ratio,
@@ -68,28 +89,20 @@ pub fn pixel_to_complex(
     top_left + offset
 }
 
-/// Calculate `zᵢₜₑᵣₐₜᵢₒₙₛ_ₘₐₓ` using: `zₙ₊₁ = zₙ² + c`.
-///
-/// `z₀ = 0+0i`
-///
-/// Escape condition: `||zₙ² + c|| > 2`
-///
-/// # Params
-/// - `c`: A complex number to be checked for membership in the Mandelbrot set.
-/// - `iteration_max`
-///
-/// # Returns
-/// - `Some(n)`: When `zₙ` escapes within the specified maximum iterations.
-/// - `None`: If `zₙ` does not escape within the given maximum iterations and is considered part of the Mandelbrot set.
-pub fn escape_time(c: Complex<f64>, iteration_max: usize) -> Option<usize> {
-    let mut z = Complex::<f64>::ZERO;
+pub fn escape_time(
+    z0: Complex<f32>,
+    mut f: impl FnMut(Complex<f32>) -> Complex<f32>,
+    bound: f32,
+    iteration_max: usize,
+) -> Option<usize> {
+    let mut z = z0;
     for n in 0..iteration_max {
-        z = (z * z) + c;
-        if z.norm_sqr() > 4.0 {
-            return Some(n); // not in mandelbrot set
+        z = f(z);
+        if z.norm_sqr() > bound {
+            return Some(n);
         }
     }
-    None // In mandelbrot set
+    None
 }
 
 /// Calculate color based on the `escape_time` of the each pixel using parallel iterators
@@ -101,29 +114,65 @@ pub fn escape_time(c: Complex<f64>, iteration_max: usize) -> Option<usize> {
 ///
 /// # Returns
 /// - `Vec<Color>`: The color data of each pixel serialized by rows
-pub fn calculate_color_data(
+pub fn calculate_mandelbrot_color_data(
     image_width: usize,
     image_height: usize,
-    top_left: Complex<f64>,
-    bottom_right: Complex<f64>,
+    top_left: Complex<f32>,
+    bottom_right: Complex<f32>,
     iteration_max: usize,
 ) -> Vec<Color> {
-    // iterate over every pixel position in parallel
-    // mapping each pixel position to a specific `Color`
-    let pixel_indexes = (0..image_height)
+    (0..image_height)
         .into_par_iter()
-        .flat_map(|y| (0..image_width).into_par_iter().map(move |x| (y, x)));
+        .flat_map(|y| {
+            (0..image_width).into_par_iter().map(move |x| {
+                // turn pixel position into a specific complex number
+                let c = pixel_to_complex(x, y, image_width, image_height, top_left, bottom_right);
 
-    pixel_indexes
-        .map(|(y, x)| {
-            // turn pixel position into a specific complex number
-            let c = pixel_to_complex(x, y, image_width, image_height, top_left, bottom_right);
+                // calculate the mandelbrot equation the specified amount of iterations
+                let escape_time = escape_time(c, |z| z * z + c, 4.0, iteration_max);
 
-            // calculate the mandelbrot equation the specified amount of iterations
-            let escape_time = escape_time(c, iteration_max);
+                // calculate color of the specific complex number
+                escape_time_to_grayscale(escape_time)
+            })
+        })
+        .collect()
+}
 
-            // calculate color of the specific complex number
-            escape_time_to_grayscale(escape_time)
+pub fn escape_time_and_path(
+    z0: Complex<f32>,
+    mut zn: impl FnMut(Complex<f32>) -> Complex<f32>,
+    bound: f32,
+    iteration_max: usize,
+) -> (Option<usize>, Vec<Complex<f32>>) {
+    let mut z = z0;
+    let mut zs = vec![z];
+    for n in 0..iteration_max {
+        z = zn(z);
+        zs.push(z);
+        if z.norm_sqr() > bound {
+            return (Some(n), zs);
+        }
+    }
+    (None, zs)
+}
+
+pub fn calculate_mandelbrot_escape_times_and_paths(
+    image_width: usize,
+    image_height: usize,
+    top_left: Complex<f32>,
+    bottom_right: Complex<f32>,
+    iteration_max: usize,
+) -> Vec<(Option<usize>, Vec<Complex<f32>>)> {
+    (0..image_height)
+        .into_par_iter()
+        .flat_map(|y| {
+            (0..image_width).into_par_iter().map(move |x| {
+                // turn pixel position into a specific complex number
+                let c = pixel_to_complex(x, y, image_width, image_height, top_left, bottom_right);
+
+                // calculate the mandelbrot equation the specified amount of iterations
+                escape_time_and_path(c, |z| z * z + c, 4.0, iteration_max)
+            })
         })
         .collect()
 }
