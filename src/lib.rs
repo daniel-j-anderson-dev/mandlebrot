@@ -173,7 +173,7 @@ pub fn calculate_mandelbrot_escape_times_and_paths(
                 let c = pixel_to_complex(x, y, image_width, image_height, center, dimensions);
 
                 // calculate the mandelbrot equation the specified amount of iterations
-                escape_time_and_path(Complex::ZERO, |z| z * z + c, 4.0, iteration_max)
+                escape_time_and_path(c, |z| z * z + c, 4.0, iteration_max)
             })
         })
         .collect()
