@@ -4,32 +4,35 @@ use std::time::Instant;
 
 #[test]
 pub fn default() {
-    const IMAGE_WIDTH: usize = 1000;
-    const IMAGE_HEIGHT: usize = 1000;
-    const TOP_LEFT: Complex<f32> = Complex::new(-2.0, 1.2);
-    const BOTTOM_RIGHT: Complex<f32> = Complex::new(0.5, -1.2);
-    const ITERATION_MAX: usize = 500;
+    let image_width = 800;
+    let image_height = 800;
+    let scale = 4.0;
+    let center = Complex::new(-0.4, 0.0);
+    let iteration_max = 500;
+
+    let dimensions = Complex::new(image_width as f32, image_height as f32);
+    let dimensions = (dimensions / dimensions.norm()).scale(scale);
 
     let grand_start = Instant::now();
     let start = Instant::now();
     let color_data = calculate_mandelbrot_color_data(
-        IMAGE_WIDTH,
-        IMAGE_HEIGHT,
-        TOP_LEFT,
-        BOTTOM_RIGHT,
-        ITERATION_MAX,
+        image_width,
+        image_height,
+        center,
+        dimensions,
+        iteration_max,
     );
     let color_delta = Instant::now() - start;
 
     let start = Instant::now();
-    let output = colors_to_rgbimage(&color_data, IMAGE_WIDTH, IMAGE_HEIGHT);
+    let mut output = colors_to_rgbimage(&color_data, image_width, image_height);
     let image_delta = Instant::now() - start;
 
     let start = Instant::now();
     output
         .save(format!(
             "mandelbrot_{}x{}_{}_iter.png",
-            IMAGE_WIDTH, IMAGE_HEIGHT, ITERATION_MAX
+            image_width, image_height, iteration_max
         ))
         .unwrap();
     let end = Instant::now();
@@ -38,8 +41,8 @@ pub fn default() {
 
     println!(
         r"
-Resolution: {IMAGE_WIDTH}x{IMAGE_HEIGHT}
-Number of iterations: {ITERATION_MAX}
+Resolution: {image_width}x{image_height}
+Number of iterations: {iteration_max}
 Grand total: {grand_delta:?}
 Calculating pixel colors: {color_delta:?}
 Copying raw pixels into image: {image_delta:?}
@@ -51,23 +54,23 @@ Saving: {save_delta:>?}"
 pub fn terminal() {
     let image_width = get_parsed_input("Enter image width: ").unwrap();
     let image_height = get_parsed_input("Enter image height: ").unwrap();
-    let scale_factor = get_parsed_input("Enter scale factor: ").unwrap();
-    let origin = get_parsed_input::<Complex<f32>>(
+    let scale = get_parsed_input("Enter scale factor: ").unwrap();
+    let center = get_parsed_input::<Complex<f32>>(
         "Enter a complex number to be the origin of the image (eg. 1 + 2i): ",
     )
     .unwrap();
     let iteration_max = get_parsed_input("Enter max number of iterations: ").unwrap();
 
-    let top_left = origin + Complex::new(-2.0, 1.2).scale(scale_factor);
-    let bottom_right = origin + Complex::new(0.5, -1.2).scale(scale_factor);
+    let dimensions = Complex::new(image_width as f32, image_height as f32);
+    let dimensions = (dimensions / dimensions.norm()).scale(scale);
 
     let grand_start = Instant::now();
     let start = grand_start;
     let color_data = calculate_mandelbrot_color_data(
         image_width,
         image_height,
-        top_left,
-        bottom_right,
+        center,
+        dimensions,
         iteration_max,
     );
     let color_delta = Instant::now() - start;
