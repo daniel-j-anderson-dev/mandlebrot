@@ -94,13 +94,13 @@ pub fn pixel_to_complex(
 pub fn escape_time(
     z0: Complex<f32>,
     mut f: impl FnMut(Complex<f32>) -> Complex<f32>,
-    bound: f32,
+    bound_squared: f32,
     iteration_max: usize,
 ) -> Option<usize> {
     let mut z = z0;
     for n in 0..iteration_max {
         z = f(z);
-        if z.norm_sqr() > bound {
+        if z.norm_sqr() > bound_squared {
             return Some(n);
         }
     }
@@ -143,7 +143,7 @@ pub fn calculate_mandelbrot_color_data(
 pub fn escape_time_and_path(
     z0: Complex<f32>,
     mut zn: impl FnMut(Complex<f32>) -> Complex<f32>,
-    bound: f32,
+    bound_squared: f32,
     iteration_max: usize,
 ) -> (Option<usize>, Vec<Complex<f32>>) {
     let mut z = z0;
@@ -151,7 +151,7 @@ pub fn escape_time_and_path(
     for n in 0..iteration_max {
         z = zn(z);
         zs.push(z);
-        if z.norm_sqr() > bound {
+        if z.norm_sqr() > bound_squared {
             return (Some(n), zs);
         }
     }
