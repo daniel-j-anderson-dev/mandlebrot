@@ -149,8 +149,8 @@ pub fn escape_time_and_path(
     let mut z = z0;
     let mut zs = vec![z];
     for n in 0..iteration_max {
-        zs.push(z);
         z = zn(z);
+        zs.push(z);
         if z.norm_sqr() > bound {
             return (Some(n), zs);
         }
